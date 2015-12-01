@@ -1,0 +1,92 @@
+// JEALOUS HOUSEPLANTS (c) Connor Campbell 2015
+
+// sketch reads moisture sensor and desplays whether soil is too wet or too dry
+// and turns servo if too wet or too dry
+
+// LEGEND:
+// yellow = too dry
+// green = just right
+// blue = too wet 
+// false = plant is too wet or too dry
+// true = plant is fine
+
+#include <Servo.h>
+Servo servo1;
+Servo servo2;
+
+const int sensorPin1 = A0;
+const int sensorPin2 = A1;
+
+//water thersholds
+const int dry = 400;
+const int wet = 120;
+
+// LED pins
+const int blue1 = 2;
+const int green1 = 3;
+const int yellow1 = 4;
+const int blue2 = 5;
+const int green2 = 6;
+const int yellow2 = 7;
+
+/////////////////////////////////////////////SETUP
+void setup(){
+  servo1.attach(9);
+  servo1.write(0);
+  servo2.attach(10);
+  servo2.write(0);
+  Serial.begin(9600);
+  delay(500); //boot up
+}
+
+/////////////////////////////////////////////LOOP
+void loop(){
+  boolean plantOkay1 = plantOkay(sensorPin1, blue1, green1, yellow1);
+  boolean plantOkay2 = plantOkay(sensorPin2, blue2, green2, yellow2);
+  
+  if (plantOkay1 == plantOkay2){  //if both plants are equal
+    servo1.write(0);
+    servo2.write(0);
+  }
+  //Serial.print(plantOkay1); Serial.print("    "); Serial.println(plantOkay2);
+  if (plantOkay1 == false && plantOkay2 == true){ //if plant2 is OK but plant 1 is not
+    servo1.write(90);
+    delay(1000);
+    servo1.write(0);
+    delay(1000);
+  }
+  if (plantOkay1 == true && plantOkay2 == false){ //if plant 1 is OK but plant 2 is not
+    servo2.write(90);
+    delay(1000);
+    servo2.write(0);
+    delay(1000);
+  }
+  delay(500); // easier to read
+}
+
+/////////////////////////////////////////////PLANT OKAY?
+int plantOkay(int sensorPin, int blue, int green, int yellow){
+  boolean val = analogRead(sensorPin);
+  Serial.println(val); Serial.println("    ");
+  boolean okay = true;
+  if (val <= wet){      //if too wet
+    okay = false;
+    digitalWrite(blue, HIGH);
+    digitalWrite(green, LOW);
+    digitalWrite(yellow, LOW);
+  }
+  if (val > wet && val < dry){     //if OK
+    okay = true;
+    digitalWrite(blue, LOW);
+    digitalWrite(green, HIGH);
+    digitalWrite(yellow, LOW);
+  }
+  if (val > dry){      //if too dry
+    okay = false;
+    digitalWrite(blue, LOW);
+    digitalWrite(green, LOW);
+    digitalWrite(yellow, HIGH);
+  }
+  return okay;
+  }
+  
